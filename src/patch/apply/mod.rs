@@ -10,24 +10,24 @@ use serde_json::Value;
 use super::Patch;
 use crate::errors::Error;
 
-/// Applies a JSON Patch to a JSON document
+/// Applies a single JSON Patch to a JSON document
 /// 
 /// For example:
 /// ```rust
-/// # use jatch::{Patch, Path, apply};
+/// # use jatch::{Patch, Path, apply_single};
 /// # use serde_json::json;
 /// let root = json!({"foo": "bar"});
 /// let patch = Patch::Add {
 ///   value: json!("world"),
 ///   path: Path::new("/hello"), 
 /// };
-/// let root = apply(root, patch).unwrap();
+/// let root = apply_single(root, patch).unwrap();
 /// assert_eq!(root, json!({
 ///    "foo": "bar",
 ///    "hello": "world",
 /// }));
 /// ```
-pub fn apply(root: Value, patch: Patch) -> Result<Value, Error> {
+pub fn apply_single(root: Value, patch: Patch) -> Result<Value, Error> {
     match patch {
         Patch::Add { value, path } => add::add(root, value, path),
         Patch::Remove { path } => remove::remove(root, path),
@@ -43,7 +43,7 @@ pub fn apply(root: Value, patch: Patch) -> Result<Value, Error> {
 /// 
 /// For example:
 /// ```rust
-/// # use jatch::{Patch, Path, apply_all};
+/// # use jatch::{Patch, Path, apply};
 /// # use serde_json::json;
 /// let root = json!({"foo": "bar"});
 /// let patches = vec![
@@ -55,17 +55,17 @@ pub fn apply(root: Value, patch: Patch) -> Result<Value, Error> {
 ///     path: Path::new("/foo"), 
 ///   },
 /// ];
-/// let root = apply_all(root, patches).unwrap();
+/// let root = apply(root, patches).unwrap();
 /// assert_eq!(root, json!({
 ///    "hello": "world",
 /// }));
 /// ```
-pub fn apply_all(
+pub fn apply(
     mut root: Value,
     patches: impl IntoIterator<Item = Patch>,
 ) -> Result<Value, Error> {
     for patch in patches {
-        root = apply(root, patch)?;
+        root = apply_single(root, patch)?;
     }
     Ok(root)
 }
@@ -111,7 +111,7 @@ mod tests {
                 let root = root.clone();
                 if let Some(patch) = test_json.get("patch") {
                     if let Ok(patch) = from_value::<Vec<Patch>>(patch.clone()) {
-                        let actual = apply_all(root, patch);
+                        let actual = apply(root, patch);
                         println!("running test for {}, number {}", test_json, index);
                         let actual = actual.map(|value| assert_eq!(value, expected));
                         actual.is_ok()

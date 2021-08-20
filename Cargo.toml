@@ -8,3 +8,14 @@ edition = "2018"
 [dependencies]
 serde_json = "1.0"
 serde = {version = "1.0", features = ["derive"]}
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "example_benchmark"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1

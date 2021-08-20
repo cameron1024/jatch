@@ -68,6 +68,14 @@ impl Path {
         }
     }
 
+    /// Append a path to this path
+    /// A leading slash is added to the path
+    pub fn join(mut self, s: impl AsRef<str>) -> Self {
+        let other = Path::new(format!("/{}", s.as_ref()));
+        self.parts.extend(other.parts);
+        self
+    }
+
     fn escape(s: impl AsRef<str>) -> String {
         let s = s.as_ref().replace(SLASH_ESCAPE, "/");
         s.replace(TILDE_ESCAPE, "~")

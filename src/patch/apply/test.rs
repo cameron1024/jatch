@@ -13,7 +13,7 @@ pub fn test(root: Value, value: Value, path: Path) -> Result<Value, Error> {
 mod tests {
     use serde_json::json;
 
-    use crate::patch::{apply::apply, Patch};
+    use crate::patch::{apply::apply_single, Patch};
 
     use super::*;
 
@@ -31,7 +31,7 @@ mod tests {
             },
             "b": [1],
         });
-        apply(root, test).unwrap();
+        apply_single(root, test).unwrap();
     }
 
     #[test]
@@ -49,7 +49,7 @@ mod tests {
             "b": [1],
         });
 
-        assert!(matches!(apply(root, test), Err(Error::FailedTest)));
+        assert!(matches!(apply_single(root, test), Err(Error::FailedTest)));
     }
 
     #[test]
@@ -67,6 +67,6 @@ mod tests {
             "b": [1],
         });
 
-        assert!(matches!(apply(root, test), Err(Error::PathDoesntExist)));
+        assert!(matches!(apply_single(root, test), Err(Error::PathDoesntExist)));
     }
 }

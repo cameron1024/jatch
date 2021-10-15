@@ -67,6 +67,8 @@ pub enum Patch {
 mod test {
     use serde_json::json;
 
+    use crate::utils::{add, copy, r#move, remove, replace, test};
+
     use super::*;
 
     #[test]
@@ -75,49 +77,32 @@ mod test {
 
         assert_eq!(
             from_str::<Patch>(r#"{"op": "add", "path": "/foo", "value": "hello"}"#).unwrap(),
-            Patch::Add {
-                path: Path::new("/foo"),
-                value: json!("hello"),
-            }
+            add("/foo", json!("hello")).unwrap(),
         );
 
         assert_eq!(
             from_str::<Patch>(r#"{"op": "remove", "path": "/foo"}"#).unwrap(),
-            Patch::Remove {
-                path: Path::new("/foo"),
-            }
+            remove("/foo").unwrap(),
         );
 
         assert_eq!(
             from_str::<Patch>(r#"{"op": "replace", "path": "/foo", "value": 123}"#).unwrap(),
-            Patch::Replace {
-                path: Path::new("/foo"),
-                value: json!(123),
-            }
+            replace("/foo", json!(123)).unwrap(),
         );
 
         assert_eq!(
             from_str::<Patch>(r#"{"op": "copy", "from": "/foo", "path": "/to"}"#).unwrap(),
-            Patch::Copy {
-                from: Path::new("/foo"),
-                path: Path::new("/to"),
-            }
+            copy("/foo", "/to").unwrap(),
         );
 
         assert_eq!(
             from_str::<Patch>(r#"{"op": "move", "from": "/foo", "path": "/to"}"#).unwrap(),
-            Patch::Move {
-                from: Path::new("/foo"),
-                path: Path::new("/to"),
-            }
+            r#move("/foo", "/to").unwrap()
         );
 
         assert_eq!(
             from_str::<Patch>(r#"{"op": "test", "path": "/foo", "value": true}"#).unwrap(),
-            Patch::Test {
-                path: Path::new("/foo"),
-                value: json!(true),
-            }
+            test("/foo", json!(true)).unwrap(),
         );
     }
 }

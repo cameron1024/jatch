@@ -1,3 +1,5 @@
+mod diff_vecs;
+
 use std::cmp::min;
 
 use serde_json::{Map, Value};
@@ -25,6 +27,7 @@ pub fn diff(before: Value, after: Value) -> Vec<Patch> {
 
 fn diff_with_root(before: Value, after: Value, root: Path) -> Vec<Patch> {
     use Value::*;
+    println!("{:?}", before);
     match (before, after) {
         (Object(before), Object(after)) => diff_maps(before, after, root),
         (Array(before), Array(after)) => diff_vecs(before, after, root),
@@ -48,7 +51,7 @@ fn diff_maps(before: Map<String, Value>, after: Map<String, Value>, root: Path) 
 
     let keys_to_remove = before.keys().filter(|key| !after.contains_key(*key));
     let keys_to_add = after.keys().filter(|key| !before.contains_key(*key));
-    let shared_keys = before.keys().filter(|key| after.contains_key(*key));
+    let keys_to_retain = before.keys().filter(|key| after.contains_key(*key));
 
     let mut results = vec![];
 
@@ -61,7 +64,7 @@ fn diff_maps(before: Map<String, Value>, after: Map<String, Value>, root: Path) 
         value: after.get(key).unwrap().clone(),
     }));
 
-    results.extend(shared_keys.flat_map(|key| {
+    results.extend(keys_to_retain.flat_map(|key| {
         diff_with_root(
             before.get(key).unwrap().clone(),
             after.get(key).unwrap().clone(),
@@ -118,7 +121,10 @@ mod test {
 
     use serde_json::json;
 
-    use crate::apply;
+    use crate::{
+        apply,
+        utils::{add, remove, replace},
+    };
 
     use super::*;
 
@@ -183,20 +189,10 @@ mod test {
 
     #[test]
     fn simple_examples() {
-        let add_hello = Patch::Add {
-            path: Path::new("/hello"),
-            value: json!("world"),
-        };
-        let add_foo = Patch::Add {
-            path: Path::new("/foo"),
-            value: json!("bar"),
-        };
-        let remove_hello = Patch::Remove {
-            path: Path::new("/hello"),
-        };
-        let remove_foo = Patch::Remove {
-            path: Path::new("/foo"),
-        };
+        let add_hello = add("/hello", json!("world")).unwrap();
+        let add_foo = add("/foo", json!("bar")).unwrap();
+        let remove_hello = remove("/hello").unwrap();
+        let remove_foo = remove("/foo").unwrap();
 
         assert_eq!(
             diff(json!({}), json!({"hello": "world"})),
@@ -231,12 +227,6 @@ mod test {
         let before = json!({"hello": "world"});
         let after = json!({"hello": "bar"});
         let patches = diff(before, after);
-        assert_eq!(
-            patches,
-            vec![Patch::Replace {
-                path: Path::new("/hello"),
-                value: json!("bar"),
-            }]
-        )
+        assert_eq!(patches, vec![replace("/hello", json!("bar")).unwrap()])
     }
 }

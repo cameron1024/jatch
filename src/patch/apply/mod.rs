@@ -14,13 +14,10 @@ use crate::errors::Error;
 /// 
 /// For example:
 /// ```rust
-/// # use jatch::{Patch, Path, apply_single};
+/// # use jatch::{Patch, Path, apply_single, utils::*};
 /// # use serde_json::json;
 /// let root = json!({"foo": "bar"});
-/// let patch = Patch::Add {
-///   value: json!("world"),
-///   path: Path::new("/hello"), 
-/// };
+/// let patch = add("/hello", json!("world")).unwrap();
 /// let root = apply_single(root, patch).unwrap();
 /// assert_eq!(root, json!({
 ///    "foo": "bar",
@@ -43,17 +40,12 @@ pub fn apply_single(root: Value, patch: Patch) -> Result<Value, Error> {
 /// 
 /// For example:
 /// ```rust
-/// # use jatch::{Patch, Path, apply};
+/// # use jatch::{Patch, Path, apply, utils::*};
 /// # use serde_json::json;
 /// let root = json!({"foo": "bar"});
 /// let patches = vec![
-///   Patch::Add {
-///     value: json!("world"),
-///     path: Path::new("/hello"),
-///   },
-///   Patch::Remove {
-///     path: Path::new("/foo"), 
-///   },
+///   add("/hello", json!("world")).unwrap(),
+///   remove("/foo").unwrap(),
 /// ];
 /// let root = apply(root, patches).unwrap();
 /// assert_eq!(root, json!({
@@ -104,6 +96,7 @@ mod tests {
         }
     }
 
+    // this could maybe do with a refactor
     fn did_test_succeed(test_json: Value, index: usize) -> bool {
         if let Some(expected) = test_json.get("expected") {
             let expected = expected.clone();

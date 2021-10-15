@@ -62,11 +62,11 @@ mod tests {
             "world": 123,
         });
         let value_to_add = json!("added");
-        let path = Path::new("/new");
+        let path = Path::new("/new").unwrap();
         let new = add(root, value_to_add, path).unwrap();
         assert_eq!(new.get("new").unwrap(), &json!("added"));
 
-        let new_again = add(new, json!(234), Path::new("/hello")).unwrap();
+        let new_again = add(new, json!(234), Path::new("/hello").unwrap()).unwrap();
         assert_eq!(new_again.get("hello").unwrap(), &json!(234));
     }
 
@@ -84,7 +84,7 @@ mod tests {
             }
         });
         let value_to_add = json!(2);
-        let path = Path::new("/a/b/c/d");
+        let path = Path::new("/a/b/c/d").unwrap();
         let new = add(root, value_to_add, path).unwrap();
         let deep_object = new.get("a").unwrap().get("b").unwrap().get("c").unwrap();
         assert_eq!(deep_object.get("d").unwrap(), &json!(2));
@@ -94,7 +94,7 @@ mod tests {
     fn add_into_array_by_index() {
         let root = json!([1, 2, 3]);
         let value = json!(4);
-        let root = add(root, value, Path::new("/0")).unwrap();
+        let root = add(root, value, Path::new("/0").unwrap()).unwrap();
         assert_eq!(root, json!([4, 1, 2, 3]));
     }
 
@@ -102,7 +102,7 @@ mod tests {
     fn add_into_array_with_hyphen() {
         let root = json!([1, 2, 3]);
         let value = json!(4);
-        let root = add(root, value, Path::new("/-")).unwrap();
+        let root = add(root, value, Path::new("/-").unwrap()).unwrap();
         assert_eq!(root, json!([1, 2, 3, 4]));
     }
 
@@ -120,8 +120,18 @@ mod tests {
                 }
             ]
         });
-        let new = add(root, json!(123), Path::new("/a/2/b/2/arr/-")).unwrap();
-        let deep_array = new.get("a").unwrap().get(2).unwrap().get("b").unwrap().get(2).unwrap().get("arr").unwrap();
+        let new = add(root, json!(123), Path::new("/a/2/b/2/arr/-").unwrap()).unwrap();
+        let deep_array = new
+            .get("a")
+            .unwrap()
+            .get(2)
+            .unwrap()
+            .get("b")
+            .unwrap()
+            .get(2)
+            .unwrap()
+            .get("arr")
+            .unwrap();
         assert_eq!(deep_array, &json!([1, 2, 3, 123]));
     }
 }

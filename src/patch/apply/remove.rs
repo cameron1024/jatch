@@ -31,10 +31,8 @@ pub fn remove(mut root: Value, path: Path) -> Result<Value, Error> {
             }
             _ => return Err(Error::PathDoesntExist),
         }
-        Ok(root)
-    } else {
-        Ok(root)
     }
+    Ok(root)
 }
 
 #[cfg(test)]
@@ -46,40 +44,28 @@ mod test {
     #[test]
     fn remove_from_array() {
         let root = json!([1, 2, 3]);
-        let without_first = remove(root, Path::new("/0")).unwrap();
+        let without_first = remove(root, Path::new("/0").unwrap()).unwrap();
         assert_eq!(without_first, json!([2, 3]));
 
-        let error = remove(without_first, Path::new("/-")).unwrap_err();
+        let error = remove(without_first, Path::new("/-").unwrap()).unwrap_err();
         assert_eq!(error, Error::PathDoesntExist);
     }
 
     #[test]
     fn remove_from_object() {
         let root = json!({"a": 1, "b": 2});
-        let without_a = remove(root, Path::new("/a")).unwrap();
+        let without_a = remove(root, Path::new("/a").unwrap()).unwrap();
         assert_eq!(without_a, json!({"b": 2}));
 
-        let error = remove(without_a, Path::new("/b/c")).unwrap_err();
+        let error = remove(without_a, Path::new("/b/c").unwrap()).unwrap_err();
         assert_eq!(error, Error::PathDoesntExist);
     }
 
     #[test]
     fn remove_from_deep_array() {
-        let root = json!([
-            1, 2, [
-                3, 4, [
-                    4, 5, 6
-                ]
-            ]
-        ]);
-        let without_6 = remove(root, Path::new("/2/2/2")).unwrap();
-        assert_eq!(without_6, json!([
-            1, 2, [
-                3, 4, [
-                    4, 5
-                ]
-            ]
-        ]))
+        let root = json!([1, 2, [3, 4, [4, 5, 6]]]);
+        let without_6 = remove(root, Path::new("/2/2/2").unwrap()).unwrap();
+        assert_eq!(without_6, json!([1, 2, [3, 4, [4, 5]]]))
     }
 
     #[test]
@@ -94,15 +80,18 @@ mod test {
                 }
             }
         });
-        let without_e = remove(root, Path::new("/a/b/c/e")).unwrap();
-        assert_eq!(without_e, json!({
-            "a": {
-                "b": {
-                    "c": {
-                        "d": 1
+        let without_e = remove(root, Path::new("/a/b/c/e").unwrap()).unwrap();
+        assert_eq!(
+            without_e,
+            json!({
+                "a": {
+                    "b": {
+                        "c": {
+                            "d": 1
+                        }
                     }
                 }
-            }
-        }));
+            })
+        );
     }
 }

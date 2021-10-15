@@ -13,17 +13,13 @@ pub fn test(root: Value, value: Value, path: Path) -> Result<Value, Error> {
 mod tests {
     use serde_json::json;
 
-    use crate::patch::{apply::apply_single, Patch};
+    use crate::{patch::apply::apply_single, utils::test};
 
     use super::*;
 
     #[test]
     fn test_test_success() {
-        let test = Patch::Test {
-            value: json!(123),
-            path: Path::new("/a/b"),
-        };
-
+        let test = test("/a/b", json!(123)).unwrap();
         let root = json!({
             "a": {
                 "b": 123,
@@ -36,11 +32,7 @@ mod tests {
 
     #[test]
     fn test_test_failure_incorrect_value() {
-        let test = Patch::Test {
-            value: json!(123),
-            path: Path::new("/a/c"),
-        };
-
+        let test = test("/a/c", json!(123)).unwrap();
         let root = json!({
             "a": {
                 "b": 123,
@@ -54,11 +46,7 @@ mod tests {
 
     #[test]
     fn test_test_failure_missing_path() {
-        let test = Patch::Test {
-            value: json!(123),
-            path: Path::new("/missing"),
-        };
-
+        let test = test("/missing", json!(123)).unwrap();
         let root = json!({
             "a": {
                 "b": 123,

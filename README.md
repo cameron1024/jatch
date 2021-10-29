@@ -13,3 +13,13 @@ assert_eq!(patches, vec![Patch::Add {
     path: Path::new("/b"),
 }]);
 ```
+Or apply patches to an existing JSON:
+```rust
+let patch = Patch::Add {
+    value: json!("hello"),
+    path: Path::new("/b"),
+};
+let before = json!({"a": 123});
+let after = apply(before, vec![patch]).unwrap();
+assert_eq!(after, json!({"a": 123, "b": "hello"});
+```

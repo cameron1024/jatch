@@ -2,6 +2,10 @@
 name = "jatch"
 version = "0.1.0"
 edition = "2018"
+license = "MIT"
+description = "Library for performing JSON patching"
+homepage = "https://github.com/cameron1024/jatch"
+repository = "https://github.com/cameron1024/jatch"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -19,6 +19,7 @@ use crate::{Patch, Path};
 /// let after_again = apply(before, patches).unwrap();
 /// assert_eq!(after, after_again);
 /// ```
+// perhaps this should take &Value 
 pub fn diff(before: Value, after: Value) -> Vec<Patch> {
     diff_with_root(before, after, Path::root())
 }

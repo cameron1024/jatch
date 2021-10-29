@@ -122,9 +122,28 @@ impl Path {
     }
 }
 
+impl<T> From<T> for Path
+where
+    T: AsRef<str>,
+{
+    fn from(t: T) -> Self {
+        let s = t.as_ref();
+        Path::new(s)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn can_create_from_strings() {
+        Path::from("/foo");
+        let _: Path = "/foo".into();
+
+        let s = "/foo".to_string();
+        let _: Path = s.into();
+    }
 
     #[test]
     fn should_split_paths_by_slash() {

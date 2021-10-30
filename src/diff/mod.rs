@@ -15,16 +15,15 @@ use crate::{Patch, Path};
 /// # use jatch::{diff, apply};
 /// let before = json!({"hello": "world"});
 /// let after = json!({"hello": "world", "foo": "bar"});
-/// let patches = diff(before.clone(), after.clone());
+/// let patches = diff(&before, &after);
 /// let after_again = apply(before, patches).unwrap();
 /// assert_eq!(after, after_again);
 /// ```
-// perhaps this should take &Value 
-pub fn diff(before: Value, after: Value) -> Vec<Patch> {
+pub fn diff(before: &Value, after: &Value) -> Vec<Patch> {
     diff_with_root(before, after, Path::root())
 }
 
-fn diff_with_root(before: Value, after: Value, root: Path) -> Vec<Patch> {
+fn diff_with_root(before: &Value, after: &Value, root: Path) -> Vec<Patch> {
     use Value::*;
     match (before, after) {
         (Object(before), Object(after)) => diff_maps(before, after, root),
@@ -35,14 +34,14 @@ fn diff_with_root(before: Value, after: Value, root: Path) -> Vec<Patch> {
             } else {
                 vec![Patch::Replace {
                     path: root,
-                    value: after,
+                    value: after.to_owned(),
                 }]
             }
         }
     }
 }
 
-fn diff_maps(before: Map<String, Value>, after: Map<String, Value>, root: Path) -> Vec<Patch> {
+fn diff_maps(before: &Map<String, Value>, after: &Map<String, Value>, root: Path) -> Vec<Patch> {
     if before == after {
         return vec![];
     }
@@ -64,8 +63,8 @@ fn diff_maps(before: Map<String, Value>, after: Map<String, Value>, root: Path) 
 
     results.extend(shared_keys.flat_map(|key| {
         diff_with_root(
-            before.get(key).unwrap().clone(),
-            after.get(key).unwrap().clone(),
+            before.get(key).unwrap(),
+            after.get(key).unwrap(),
             root.clone().join(key),
         )
     }));
@@ -77,7 +76,7 @@ fn diff_maps(before: Map<String, Value>, after: Map<String, Value>, root: Path) 
 // it essentially treats the vec like an object with integer keys
 // works well if appending to the list, only the new index has changed
 // pretty bad if you insert into the start of the list, since every index will have its corresponding value changed, so gets a patch emitted for it
-fn diff_vecs(before: Vec<Value>, after: Vec<Value>, root: Path) -> Vec<Patch> {
+fn diff_vecs(before: &[Value], after: &[Value], root: Path) -> Vec<Patch> {
     if before == after {
         return vec![];
     }
@@ -89,8 +88,8 @@ fn diff_vecs(before: Vec<Value>, after: Vec<Value>, root: Path) -> Vec<Patch> {
     for index in shared_indices {
         if before[index] != after[index] {
             results.extend(diff_with_root(
-                before[index].clone(),
-                after[index].clone(),
+                &before[index],
+                &after[index],
                 root.clone().join(index.to_string()),
             ));
         }
@@ -129,7 +128,7 @@ mod test {
     // note these tests aren't 100% meaningful, since a patch that simply replaces the entire document would be pass the test, but be "incorrect" in a sense
     // they also implicitly depend on `apply` being correct
     fn test_round_trip(before: Value, after: Value) {
-        let patches = diff(before.clone(), after.clone());
+        let patches = diff(&before, &after);
         let computed_after = apply(before, patches).unwrap();
         assert_eq!(after, computed_after)
     }
@@ -178,7 +177,7 @@ mod test {
     #[test]
     fn identical_values_should_not_generate_patches() {
         for value in example_jsons() {
-            assert_eq!(diff(value.clone(), value.clone()), vec![]);
+            assert_eq!(diff(&value, &value), vec![]);
         }
     }
 
@@ -200,37 +199,37 @@ mod test {
         };
 
         assert_eq!(
-            diff(json!({}), json!({"hello": "world"})),
+            diff(&json!({}), &json!({"hello": "world"})),
             vec![add_hello.clone()]
         );
         assert_eq!(
-            diff(json!({}), json!({"hello": "world", "foo": "bar"})),
+            diff(&json!({}), &json!({"hello": "world", "foo": "bar"})),
             vec![add_foo, add_hello],
         );
         assert_eq!(
             diff(
-                json!({"hello": "world", "foo": "bar"}),
-                json!({"hello": "world"})
+                &json!({"hello": "world", "foo": "bar"}),
+                &json!({"hello": "world"})
             ),
             vec![remove_foo.clone()],
         );
         assert_eq!(
             diff(
-                json!({"hello": "world", "foo": "bar"}),
-                json!({"foo": "bar"})
+                &json!({"hello": "world", "foo": "bar"}),
+                &json!({"foo": "bar"})
             ),
             vec![remove_hello.clone()],
         );
         assert_eq!(
-            diff(json!({"hello": "world", "foo": "bar"}), json!({})),
+            diff(&json!({"hello": "world", "foo": "bar"}), &json!({})),
             vec![remove_foo, remove_hello],
         );
     }
 
     #[test]
     fn should_replace_where_appropriate() {
-        let before = json!({"hello": "world"});
-        let after = json!({"hello": "bar"});
+        let before = &json!({"hello": "world"});
+        let after = &json!({"hello": "bar"});
         let patches = diff(before, after);
         assert_eq!(
             patches,

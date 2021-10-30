@@ -7,7 +7,7 @@ Easily find the difference between 2 JSONs:
 let before = json!({"a": 123});
 let after = json!({"a": 123, "b": "hello"});
 
-let patches = diff(before, after);
+let patches = diff(&before, &after);
 assert_eq!(patches, vec![Patch::Add {
     value: json!("hello"),
     path: Path::new("/b"),
